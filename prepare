@@ -84,6 +84,7 @@ debug_mode = get_value_or_default("debug_mode", "true")
 debug_pretty_mode = get_value_or_default("debug_pretty_mode", "true")
 debug_nocolor_mode = get_value_or_default("debug_nocolor_mode", "false")
 open_mode = get_value_or_default("open_mode", "false")
+drone_admin_list = get_value_or_default("drone_admin_list", "wrchen")
 
 drone_domain = rcp.get("configuration", "drone_domain")
 # 使用 https 协议
@@ -166,6 +167,7 @@ render(os.path.join(templates_dir, "drone-server", "env"),
         drone_server_env_file,
         debug_mode=debug_mode,
         open_mode=open_mode,
+        drone_admin_list=drone_admin_list,
         drone_host=drone_host,
         drone_domain=drone_domain,
         drone_secret=drone_secret,
