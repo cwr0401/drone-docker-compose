@@ -23,8 +23,9 @@ DRONE_SERVER_KEY=/etc/certs/${drone_domain}/server.key
 # DRONE_QUIC
 # serve the website from disk
 # DRONE_WWW
+
 # list of admin users
-# DRONE_ADMIN
+DRONE_ADMIN=${drone_admin_list}
 # list of approved organizations
 # DRONE_ORGS
 
