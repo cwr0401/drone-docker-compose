@@ -189,7 +189,7 @@ render("docker-compose.yml.tp",
         syslog_port=syslog_port,
         mysql_manage_port=mysql_manage_port,
         dns_master=dns_master,
-        dns_slave=dns_master,
+        dns_slave=dns_slave,
         drone_domain=drone_domain)
 
 mysql_data_dir = prep_conf_dir(os.path.join(base_dir, "common", "data"), "mysql")
