@@ -1,0 +1,14 @@
+[mysqld]
+max_connections  = 10000
+open-files-limit = 10000
+
+innodb_file_per_table=1
+
+log-bin = mysql-bin
+binlog_format = mixed
+
+server-id = $mysql_server_id
+replicate-ignore-db = information_schema
+replicate-ignore-db = performance_schema
+replicate-ignore-db = mysql
+replicate-ignore-db = sys

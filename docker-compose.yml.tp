@@ -1,0 +1,95 @@
+version: '2'
+services:
+  log:
+    image: registry.cywcloud.com/tools/syslog:v0.0.1
+    container_name: drone-log
+    restart: always
+    volumes:
+      - /var/log/drone:/var/log/docker:z
+    environment:
+      TZ: '$timezone'
+    ports:
+      - 127.0.0.1:${syslog_port}:514
+    networks:
+      - drone
+  mysql:
+    image: mysql:5.7
+    container_name: drone_db
+    env_file:
+      - ./common/config/mysql/env
+    ports:
+      - ${mysql_manage_port}:3306
+    restart: always
+    volumes:
+      - ./common/config/mysql/db_schema:/docker-entrypoint-initdb.d
+      - ./common/config/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+      - ./common/data/mysql:/var/lib/mysql:z
+    environment:
+      TZ: '$timezone'
+    networks:
+      - drone
+    depends_on:
+      - log
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://127.0.0.1:${syslog_port}"
+        tag: "mysql"
+  drone-server:
+    image: registry.cywcloud.com/drone/drone:0.8.0
+    container_name: drone_server
+    ports:
+      - 80:80
+      - 443:443
+      - 8000:8000
+      - 9000:9000
+    dns:
+      - $dns_master
+      - $dns_slave
+    volumes:
+      - ./common/data/drone/:/var/lib/drone/
+      - ./common/config/drone-server/certs/server.crt:/etc/certs/${drone_domain}/server.crt
+      - ./common/config/drone-server/certs/server.key:/etc/certs/${drone_domain}/server.key
+    restart: always
+    networks:
+      - drone
+    depends_on:
+      - log
+      - mysql
+    environment:
+      TZ: '$timezone'
+    env_file:
+      - ./common/config/drone-server/env
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://127.0.0.1:${syslog_port}"
+        tag: "server"
+  drone-agent:
+    image: registry.cywcloud.com/drone/agent:0.8.0
+    container_name: drone_agent
+    restart: always
+    depends_on:
+      - log
+      - drone-server
+    networks:
+      - drone
+    ports:
+      - 3000:3000
+    dns:
+      - $dns_master
+      - $dns_slave
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: '${timezone}'
+    env_file:
+      - ./common/config/drone-agent/env
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://127.0.0.1:${syslog_port}"
+        tag: "agent"
+networks:
+  drone:
+    external: false

@@ -1,0 +1,139 @@
+#### drone server environment file
+# start the server in debug mode
+DRONE_DEBUG=${debug_mode}
+
+# open user registration
+DRONE_OPEN=${open_mode}
+
+# server host, set one of DRONE_SERVER_HOST or DRONE_HOST.
+# DRONE_SERVER_HOST
+DRONE_HOST=${drone_host}
+
+# server address, default ':8000'
+# DRONE_SERVER_ADDR
+
+# server ssl cert
+DRONE_SERVER_CERT=/etc/certs/${drone_domain}/server.crt
+# server ssl key
+DRONE_SERVER_KEY=/etc/certs/${drone_domain}/server.key
+# lets encrypt enabled
+# DRONE_LETS_ENCRYPT
+
+# start the server with quic enabled
+# DRONE_QUIC
+# serve the website from disk
+# DRONE_WWW
+# list of admin users
+# DRONE_ADMIN
+# list of approved organizations
+# DRONE_ORGS
+
+# file path for the drone config, default '.drone.yml'
+# DRONE_REPO_CONFIG
+
+# Set the session expiration time default 72h
+# DRONE_SESSION_EXPIRES
+
+# escalate, default { "plugins/docker",
+#	  		              "plugins/gcr",
+# 			              "plugins/ecr", }
+# DRONE_ESCALATE
+
+# agent secret passcode, set one of DRONE_AGENT_SECRET or DRONE_SECRET.
+# DRONE_AGENT_SECRET
+DRONE_SECRET=${drone_secret}
+
+# DRONE_VOLUME
+# DRONE_NETWORK
+
+# secret plugin endpoint
+# DRONE_SECRET_ENDPOINT
+# registry plugin endpoint
+# DRONE_REGISTRY_ENDPOINT
+# gated build endpoint
+# DRONE_GATEKEEPER_ENDPOINT
+
+# database driver, set one of DATABASE_DRIVER or DRONE_DATABASE_DRIVER.
+# DATABASE_DRIVER
+DRONE_DATABASE_DRIVER=mysql
+# database driver configuration string, set one of DATABASE_CONFIG or DRONE_DATABASE_DATASOURCE.
+# DATABASE_CONFIG
+DRONE_DATABASE_DATASOURCE=${mysql_drone_user}:${mysql_drone_pass}@tcp(${mysql_drone_host}:${mysql_drone_port})/drone?parseTime=true
+
+## resource limit parameters
+# DRONE_LIMIT_MEM_SWAP
+# DRONE_LIMIT_MEM
+# DRONE_LIMIT_SHM_SIZE
+# DRONE_LIMIT_CPU_QUOTA
+# DRONE_LIMIT_CPU_SHARES
+# DRONE_LIMIT_CPU_SET
+
+### remote parameters
+
+## gogs
+DRONE_GOGS=true
+DRONE_GOGS_URL=${drone_gogs_url}
+DRONE_GOGS_SKIP_VERIFY=true
+# DRONE_GOGS_GIT_USERNAME
+# DRONE_GOGS_GIT_PASSWORD
+# DRONE_GOGS_PRIVATE_MODE
+
+## github
+# DRONE_GITHUB
+# DRONE_GITHUB_URL
+# DRONE_GITHUB_CONTEXT
+# DRONE_GITHUB_CLIENT
+# DRONE_GITHUB_SECRET
+# DRONE_GITHUB_SCOPE
+# DRONE_GITHUB_GIT_USERNAME
+# DRONE_GITHUB_GIT_PASSWORD
+# DRONE_GITHUB_MERGE_REF
+# DRONE_GITHUB_PRIVATE_MODE
+# DRONE_GITHUB_SKIP_VERIFY
+
+## gitea
+# DRONE_GITEA
+# DRONE_GITEA_URL
+# DRONE_GITEA_GIT_USERNAME
+# DRONE_GITEA_GIT_PASSWORD
+# DRONE_GITEA_PRIVATE_MODE
+# DRONE_GITEA_SKIP_VERIFY
+
+## bitbucket
+# DRONE_BITBUCKET
+# DRONE_BITBUCKET_CLIENT
+# DRONE_BITBUCKET_SECRET
+
+## gitlab
+# DRONE_GITLAB
+# DRONE_GITLAB_URL
+# DRONE_GITLAB_CLIENT
+# DRONE_GITLAB_SECRET
+# DRONE_GITLAB_GIT_USERNAME
+# DRONE_GITLAB_GIT_PASSWORD
+# DRONE_GITLAB_SKIP_VERIFY
+# DRONE_GITLAB_PRIVATE_MODE
+# DRONE_GITLAB_V3_API
+
+## stash
+# DRONE_STASH
+# DRONE_STASH_URL
+# DRONE_STASH_CONSUMER_KEY
+# DRONE_STASH_CONSUMER_RSA
+# DRONE_STASH_CONSUMER_RSA_STRING
+# DRONE_STASH_GIT_USERNAME
+# DRONE_STASH_GIT_PASSWORD
+# DRONE_STASH_SKIP_VERIFY
+
+## coding
+# DRONE_CODING
+# DRONE_CODING_URL
+# DRONE_CODING_CLIENT
+# DRONE_CODING_SECRET
+# DRONE_CODING_SCOPE
+# DRONE_CODING_GIT_MACHINE
+# DRONE_CODING_GIT_USERNAME
+# DRONE_CODING_GIT_PASSWORD
+# DRONE_CODING_SKIP_VERIFY
+
+#### end

@@ -1,0 +1,35 @@
+#### drone agent environment file
+# drone server address
+DRONE_SERVER=drone-server:9000
+
+# drone auth username, default 'x-oauth-basic'
+# DRONE_USERNAME
+# drone auth password, set one of DRONE_PASSWORD or DRONE_SECRET.
+# DRONE_PASSWORD
+DRONE_SECRET=${drone_secret}
+
+# start the agent in debug mode
+DRONE_DEBUG=${debug_mode}
+
+# enable pretty-printed debug output
+DRONE_DEBUG_PRETTY=${debug_pretty_mode}
+
+# disable colored debug output
+DRONE_DEBUG_NOCOLOR=${debug_nocolor_mode}
+
+# DRONE_HOSTNAME
+# HOSTNAME
+
+# run drone agent platform, default 'linux/amd64'
+# DRONE_PLATFORM
+
+# filter expression used to restrict builds by label
+# DRONE_FILTER
+
+# default 1
+# DRONE_MAX_PROCS
+
+# enables the healthcheck endpoint
+DRONE_HEALTHCHECK=true
+
+#### end

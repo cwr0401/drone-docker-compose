@@ -1,0 +1,202 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals # We require Python 2.6 or later
+from string import Template
+import random
+import string
+import os
+import sys
+import argparse
+import shutil
+from io import open
+
+if sys.version_info[:3][0] == 2:
+    import ConfigParser as ConfigParser
+    import StringIO as StringIO
+
+if sys.version_info[:3][0] == 3:
+    import configparser as ConfigParser
+    import io as StringIO
+
+def validate(conf, args):
+    if not rcp.has_option("configuration", "ssl_cert"):
+        raise Exception("Error: The protocol is https but attribute ssl_cert is not set")
+    cert_path = rcp.get("configuration", "ssl_cert")
+    if not os.path.isfile(cert_path):
+        raise Exception("Error: The path for certificate: %s is invalid" % cert_path)
+    if not rcp.has_option("configuration", "ssl_cert_key"):
+        raise Exception("Error: The protocol is https but attribute ssl_cert_key is not set")
+    cert_key_path = rcp.get("configuration", "ssl_cert_key")
+    if not os.path.isfile(cert_key_path):
+        raise Exception("Error: The path for certificate key: %s is invalid" % cert_key_path)
+
+def prep_conf_dir(root, name):
+    absolute_path = os.path.join(root, name)
+    if not os.path.exists(absolute_path):
+        os.makedirs(absolute_path)
+    return absolute_path
+
+def render(src, dest, **kw):
+    t = Template(open(src, 'r').read())
+    with open(dest, 'w') as f:
+        f.write(t.substitute(**kw))
+    print("Generated configuration file: %s" % dest)
+
+base_dir = os.path.dirname(__file__)
+config_dir = os.path.join(base_dir, "common/config")
+templates_dir = os.path.join(base_dir, "common/templates")
+def delfile(src):
+    if os.path.isfile(src):
+        try:
+            os.remove(src)
+            print("Clearing the configuration file: %s" % src)
+        except:
+            pass
+    elif os.path.isdir(src):
+        for item in os.listdir(src):
+            itemsrc=os.path.join(src,item)
+            delfile(itemsrc)
+
+def get_value_or_default(var_name, default_value=None):
+    if rcp.has_option("configuration", var_name):
+        return rcp.get("configuration", var_name)
+    return default_value
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--conf', dest='cfgfile', default=base_dir+'/drone.cfg',type=str,help="the path of drone configuration file")
+parser.add_argument('--slave', dest='slave_node', default=False, action='store_true', help="the drone mysql instance is slave node")
+args = parser.parse_args()
+
+delfile(config_dir)
+#Read configurations
+conf = StringIO.StringIO()
+conf.write("[configuration]\n")
+conf.write(open(args.cfgfile).read())
+conf.seek(0, os.SEEK_SET)
+rcp = ConfigParser.RawConfigParser()
+rcp.readfp(conf)
+
+validate(rcp, args)
+
+
+timezone = rcp.get("configuration", "timezone")
+debug_mode = get_value_or_default("debug_mode", "true")
+debug_pretty_mode = get_value_or_default("debug_pretty_mode", "true")
+debug_nocolor_mode = get_value_or_default("debug_nocolor_mode", "false")
+open_mode = get_value_or_default("open_mode", "false")
+
+drone_domain = rcp.get("configuration", "drone_domain")
+# 使用 https 协议
+drone_url_protocol = get_value_or_default("drone_url_protocol", "https")
+
+drone_host = drone_url_protocol + "://" + drone_domain
+
+# gogs 代码版本库 URL
+drone_gogs_url = rcp.get("configuration", "drone_gogs_url")
+
+# 如果不指定，将随机生成
+# drone_secret=
+default_drone_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))
+drone_secret = get_value_or_default("drone_secret", default_drone_secret)
+
+# mysql configuration
+mysql_root_password=get_value_or_default("mysql_root_password", "Passw0rd")
+mysql_drone_user=get_value_or_default("mysql_drone_user", "drone")
+mysql_drone_pass=get_value_or_default("mysql_drone_pass", "drone_pass")
+mysql_drone_host=get_value_or_default("mysql_drone_host", "mysql")
+mysql_drone_port=get_value_or_default("mysql_drone_port", "3306")
+
+
+if args.slave_node:
+    mysql_server_id = 2
+else:
+    mysql_server_id = 1
+
+# docker-compose
+syslog_port=get_value_or_default("syslog_port", "1514")
+mysql_manage_port=get_value_or_default("mysql_manage_port", "3306")
+dns_master=get_value_or_default("dns_master", "113.10.246.122")
+dns_slave=get_value_or_default("dns_slave", "113.10.246.125")
+
+#########
+
+mysql_config_dir = prep_conf_dir(config_dir, "mysql")
+mysql_db_schema_dir = prep_conf_dir(mysql_config_dir, "db_schema")
+
+
+mysql_conf_env = os.path.join(config_dir, "mysql", "env")
+mysql_conf_file = os.path.join(config_dir, "mysql", "mysql.cnf")
+mysql_drone_file = os.path.join(config_dir, "mysql", "db_schema", "1_drone-db-schema.sql")
+
+drone_server_config_dir = prep_conf_dir(config_dir, "drone-server")
+drone_server_env_file = os.path.join(config_dir, "drone-server", "env")
+
+cert_dir = prep_conf_dir(drone_server_config_dir, "certs")
+cert_path = rcp.get("configuration", "ssl_cert")
+cert_key_path = rcp.get("configuration", "ssl_cert_key")
+
+drone_agent_config_dir = prep_conf_dir(config_dir, "drone-agent")
+drone_agent_env_file = os.path.join(config_dir, "drone-agent", "env")
+
+
+# copy certs file
+target_cert_path = os.path.join(cert_dir, "server.crt")
+if not os.path.exists(cert_dir):
+    os.makedirs(cert_dir)
+shutil.copyfile(cert_path, target_cert_path)
+target_cert_key_path = os.path.join(cert_dir, "server.key")
+shutil.copyfile(cert_key_path, target_cert_key_path)
+
+
+render(os.path.join(templates_dir, "mysql", "env"),
+        mysql_conf_env,
+        mysql_root_password=mysql_root_password)
+
+render(os.path.join(templates_dir, "mysql", "mysql.cnf"),
+        mysql_conf_file,
+        mysql_server_id=mysql_server_id)
+
+render(os.path.join(templates_dir, "mysql", "db_schema", "1_drone-db-schema.sql"),
+        mysql_drone_file,
+        mysql_drone_user=mysql_drone_user,
+        mysql_drone_pass=mysql_drone_pass
+        )
+
+render(os.path.join(templates_dir, "drone-server", "env"),
+        drone_server_env_file,
+        debug_mode=debug_mode,
+        open_mode=open_mode,
+        drone_host=drone_host,
+        drone_domain=drone_domain,
+        drone_secret=drone_secret,
+        mysql_drone_host=mysql_drone_host,
+        mysql_drone_port=mysql_drone_port,
+        mysql_drone_user=mysql_drone_user,
+        mysql_drone_pass=mysql_drone_pass,
+        drone_gogs_url=drone_gogs_url
+        )
+
+render(os.path.join(templates_dir, "drone-agent", "env"),
+        drone_agent_env_file,
+        debug_mode=debug_mode,
+        debug_pretty_mode=debug_pretty_mode,
+        debug_nocolor_mode=debug_nocolor_mode,
+        drone_secret=drone_secret)
+
+render("docker-compose.yml.tp",
+        "docker-compose.yml",
+        timezone=timezone,
+        syslog_port=syslog_port,
+        mysql_manage_port=mysql_manage_port,
+        dns_master=dns_master,
+        dns_slave=dns_master,
+        drone_domain=drone_domain)
+
+mysql_data_dir = prep_conf_dir(os.path.join(base_dir, "common", "data"), "mysql")
+print("MySQL data directory: %s" % mysql_data_dir)
+drone_data_dir = prep_conf_dir(os.path.join(base_dir, "common", "data"), "drone")
+print("Drone server data directory: %s" % drone_data_dir)
+
+print("Drone web URL: %s" % drone_host)
+
+print("The configuration files are ready, please use docker-compose to start the service.")
