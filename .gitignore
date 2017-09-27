@@ -26,6 +26,6 @@ Temporary Items
 .apdisk
 
 # idea
-.idea
+.idea/*
 commom/data
 commom/config

@@ -47,7 +47,7 @@ services:
       - $dns_master
       - $dns_slave
     volumes:
-      - ./common/data/drone/:/var/lib/drone/
+      - ./common/data/drone/:/var/lib/drone/:z
       - ./common/config/drone-server/certs/server.crt:/etc/certs/${drone_domain}/server.crt
       - ./common/config/drone-server/certs/server.key:/etc/certs/${drone_domain}/server.key
     restart: always
